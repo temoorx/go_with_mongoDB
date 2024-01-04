@@ -26,7 +26,6 @@ func init() {
 	clientOption := options.Client().ApplyURI(connectionString)
 
 	//connect to mongoDB
-
 	client, err := mongo.Connect(context.TODO(), clientOption)
 
 	if err != nil {
@@ -40,8 +39,7 @@ func init() {
 	fmt.Println("Collection is ready")
 }
 
-//insert a record
-
+// insert a record
 func inserOneMovie(movie model.Netflix) {
 	inserted, err := collection.InsertOne(context.Background(), movie)
 
@@ -52,8 +50,7 @@ func inserOneMovie(movie model.Netflix) {
 	fmt.Println("Inserted a movie in db with id", inserted.InsertedID)
 }
 
-//update a record
-
+// update a record
 func updateOneMovie(movieId string) {
 	id, _ := primitive.ObjectIDFromHex(movieId)
 	filter := bson.M{"_id": id}
@@ -83,23 +80,19 @@ func deleteOneMovie(movieId string) {
 	fmt.Println("Movie got deleted count: ", deleteCount)
 }
 
-//delete all record
-
-func deleteAllMovie(movieId string) int64 {
-
+// delete all record
+func deleteAllMovie() int64 {
 	deleteResult, err := collection.DeleteMany(context.Background(), bson.D{{}}, nil)
 
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println("Number of movies delete", deleteResult.DeletedCount)
+	fmt.Println("Number of movies deleted", deleteResult.DeletedCount)
 	return deleteResult.DeletedCount
-
 }
 
-//get all records from db
-
-func deleteAllTheMovie() []primitive.M {
+// get all records from db
+func getAllMovies() []primitive.M {
 	cur, err := collection.Find(context.Background(), bson.D{{}})
 
 	if err != nil {
@@ -121,18 +114,14 @@ func deleteAllTheMovie() []primitive.M {
 	return movies
 }
 
-//main controller
-
+// main controller
 func GetMyallMovies(w http.ResponseWriter, r *http.Request) {
-
 	w.Header().Set("Content-Type", "application/json")
-	allMovies := deleteAllMovie()
+	allMovies := getAllMovies()
 	json.NewEncoder(w).Encode(allMovies)
-
 }
 
 func CreateMovie(w http.ResponseWriter, r *http.Request) {
-
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Allow-Control-Allow-Methods", "POST")
 
@@ -140,7 +129,6 @@ func CreateMovie(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewDecoder(r.Body).Decode(&movie)
 	inserOneMovie(movie)
 	json.NewEncoder(w).Encode(movie)
-
 }
 
 func MarkAsWatched(w http.ResponseWriter, r *http.Request) {
@@ -150,7 +138,6 @@ func MarkAsWatched(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	updateOneMovie(params["id"])
 	json.NewEncoder(w).Encode(params)
-
 }
 
 func DeleteOneMovie(w http.ResponseWriter, r *http.Request) {
@@ -160,13 +147,12 @@ func DeleteOneMovie(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	deleteOneMovie(params["id"])
 	json.NewEncoder(w).Encode(params["id"])
-
 }
 
 func DeleteAllMovies(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Allow-Control-Allow-Methods", "DELETE")
 
-	delete := deleteAllTheMovie()
+	count := deleteAllMovie()
 	json.NewEncoder(w).Encode(count)
 }
